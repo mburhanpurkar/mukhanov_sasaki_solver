@@ -8,7 +8,7 @@ from scipy.integrate import odeint
 
 class InfModel:
     """All time-dependent quantities in this class are in terms of conformal time!"""
-    def __init__(self, V, dV, k, phi0=1, dphi0=-0.1, a0=1, niter=40000, t0=-1):
+    def __init__(self, V, dV, k, phi0=30, dphi0=-0.00001, a0=1, niter=40000, t0=-0.3):
         self.V = V
         self.dV = dV
         self.init_params = [phi0, dphi0, a0]
@@ -80,11 +80,14 @@ class InfModel:
         dvk_im = tmp[:, 1]
 
         #  RR = (H * v / dphi / a)**2 at horizon crossing
-        # i0 = (np.abs(H * self.a - k)).argmin()
+        i0 = (np.abs(H * self.a - self.k)).argmin()
+        print self.t[i0]
         # print("D^2_R(k=" + str(k) + ") = " + str((H[i0] * vk[i0] / self.dphi[i0] / self.a[i0])**2))
 
         if plot:
-            plt.plot(self.t, vk_re**2 + vk_im**2)
+            plt.plot(self.t, self.a * H)
+            # plt.plot(self.t, vk_re**2 + vk_im**2)
+            # plt.plot(vk_re, vk_im)
             plt.xlabel("Conformal Time")
             plt.ylabel("vk")
             plt.show()
@@ -93,7 +96,7 @@ class InfModel:
         # x is the array of z'' / z
         # t is a single value of conformal time
         if t <= 0 and t >= self.t0:
-            return x[int((t - self.t0) * self.niter)]
+            return x[int(-(t - self.t0) * self.niter / self.t0)]
         elif t < self.t0:
             return x[0]
         else:
@@ -108,14 +111,16 @@ class InfModel:
 
 
 def V(phi):
-    return phi**4
+    # return np.exp(2 * phi)
+    return 0.01 * phi**2
 
 
 def dV(phi):
-    return 4 * phi**3
+    # return 2 * np.exp(2 * phi)
+    return 0.01 * phi
 
 
 
-model = InfModel(V, dV, 100)
+model = InfModel(V, dV, 3.5)
 # model.get_a_phi(plot=True)
 model.get_vk(True)
