@@ -8,10 +8,10 @@ from scipy.integrate import odeint
 
 class InfModel:
     """All time-dependent quantities in this class are in terms of conformal time!"""
-    def __init__(self, V, dV, k, phi0=30, dphi0=-0.00001, a0=1, niter=40000, t0=-0.3):
+    def __init__(self, V, dV, k, phi0=30, dphi0=-0.00001, a0=1, niter=40000, t0=-0.55):
         self.V = V
         self.dV = dV
-        self.init_params = [phi0, dphi0, a0]
+        self.init_params = [phi0, dphi0, math.log(a0)]  # solve for b(t) = log(a(t)) instead of a(t) as before
         self.k = k
         self.t0 = t0
         self.v0_re = math.cos(self.k * self.t0) / math.sqrt(2 * self.k)
@@ -27,26 +27,33 @@ class InfModel:
 
     def diffs1(self, U, tau):
         # returns a list of functions f'(tau) on which we wish to compute f(tau)
-        phi, dphi, a = U
+        phi, dphi, b = U
         return [dphi,  # needed for initial condition
-                -a**2 * self.dV(phi) - 2 * dphi * math.sqrt((a**2 * self.V(phi) + dphi**2 / 2) / 3),  # phi''
-                math.sqrt(dphi**2 / 2 + self.V(phi) * a**2) * a]  # a'
+                -2 * dphi * math.sqrt(dphi**2 / 2 + self.V(phi) * math.exp(2 * b)) / math.sqrt(3) - math.exp(2 * b) * self.dV(phi),  # phi''
+                math.sqrt(dphi**2 / 2 + self.V(phi) * math.exp(2 * b)) / math.sqrt(3)]  # b' for b = log(a)
 
     def get_a_phi(self, plot=False):
+        # Instead of solving for a as before, try solving for b = log a to protect against divergence
         self.t = np.linspace(self.t0, 0, num=self.niter)
         tmp = odeint(self.diffs1, self.init_params, self.t)
         self.phi = tmp[:, 0]
         self.dphi = tmp[:, 1]
-        self.a = tmp[:, 2]
+        self.b = tmp[:, 2]
+        self.a = np.exp(tmp[:, 2])
         if plot:
-            plt.plot(self.t, self.a)
+            plt.plot(self.t, self.b)
+            plt.xlabel("Conformal Time")
+            plt.ylabel("log(a)")
+            plt.show()
+
+            plt.plot(self.t, np.exp(self.b))
             plt.xlabel("Conformal Time")
             plt.ylabel("Scale Factor")
             plt.show()
 
             # Plot where inflation is happening!
             plt.plot(self.t, self.phi)
-            mask = np.where(4 * (self.dphi**2 / 2 / self.a**2) - 2 * self.V(self.phi) < 0, True, False)
+            mask = np.where(4 * (self.dphi**2 / 2 / np.exp(self.b)**2) - 2 * self.V(self.phi) < 0, True, False)
             tinf = self.t[mask]
             phiinf = self.phi[mask]
             plt.plot(tinf, phiinf, 'go', markersize=2)
@@ -59,8 +66,8 @@ class InfModel:
             plt.ylabel("Phi'")
             plt.show()
 
-    def get_vk(self, plot=False):
-        self.get_a_phi(plot)
+    def get_vk(self, plot_a=False, plot=False):
+        self.get_a_phi(plot_a)
         H = np.sqrt(self.V(self.phi) + self.dphi**2 / 2 / self.a**2)
         z = self.dphi / H
         # Numerically compute z''
@@ -85,7 +92,8 @@ class InfModel:
         # print("D^2_R(k=" + str(k) + ") = " + str((H[i0] * vk[i0] / self.dphi[i0] / self.a[i0])**2))
 
         if plot:
-            plt.plot(self.t, self.a * H)
+            plt.plot(self.t, self.a * H - self.k)
+            plt.plot(self.t, np.zeros(len(self.t)))
             # plt.plot(self.t, vk_re**2 + vk_im**2)
             # plt.plot(vk_re, vk_im)
             plt.xlabel("Conformal Time")
@@ -121,6 +129,6 @@ def dV(phi):
 
 
 
-model = InfModel(V, dV, 3.5)
+model = InfModel(V, dV, 60)
 # model.get_a_phi(plot=True)
-model.get_vk(True)
+model.get_vk(False, True)
