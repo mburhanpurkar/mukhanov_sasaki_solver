@@ -186,13 +186,14 @@ class InfModel:
 
 def V(phi):
     # return np.exp(2 * phi)
-    return 0.1 * phi**(2/3)
+    return 0.1 * phi**(2 / 3)
 
 
 def dV(phi):
-    return 0.1 * 2/3 * phi**(2/3 - 1)
+    return 0.1 * 2 / 3 * phi**(2 / 3 - 1)
 
-nk = 1
+t1 = time.time()
+nk = 100
 logk = np.linspace(-2, 3, nk)
 deltas23 = np.zeros(nk)
 deltat23 = np.zeros(nk)
@@ -201,6 +202,8 @@ for s in range(nk):
     model = InfModel(V, dV, k, phi0=30, a0=math.exp(-626), efold=676)
     deltas23[s] = model.get_vk(False, False)
     deltat23[s] = model.get_vt(False, False)
+    if s % 10 == 0:
+        print s
 
 np.save("deltas23", deltas23)
 np.save("deltat23", deltat23)
@@ -244,23 +247,29 @@ np.save("deltat23", deltat23)
 #
 # np.save("deltas43", deltas43)
 # np.save("deltat43", deltat43)
-#
-#
-# def V(phi):
-#     # return np.exp(2 * phi)
-#     return 0.1 * phi**(2)
-#
-#
-# def dV(phi):
-#     return 0.1 * 2 * phi**(2 - 1)
-#
-# deltas2 = np.zeros(nk)
-# deltat2 = np.zeros(nk)
-# for s in range(nk):
-#     k = math.exp(logk[s])
-#     model = InfModel(V, dV, k, phi0=30, a0=math.exp(-175), efold=225)
-#     deltas2[s] = model.get_vk(False, False)
-#     deltat2[s] = model.get_vt(False, False)
-#
-# np.save("deltas2", deltas2)
-# np.save("deltat2", deltat2)
+
+
+def V(phi):
+    # return np.exp(2 * phi)
+    return 0.1 * phi**(2)
+
+
+def dV(phi):
+    return 0.1 * 2 * phi**(2 - 1)
+
+
+deltas2 = np.zeros(nk)
+deltat2 = np.zeros(nk)
+for s in range(nk):
+    k = math.exp(logk[s])
+    model = InfModel(V, dV, k, phi0=30, a0=math.exp(-175), efold=225)
+    deltas2[s] = model.get_vk(False, False)
+    deltat2[s] = model.get_vt(False, False)
+    if s % 10 == 0:
+        print s
+
+np.save("deltas2", deltas2)
+np.save("deltat2", deltat2)
+
+t2 = time.time
+print "time", (t2 - t1) / 60.0
