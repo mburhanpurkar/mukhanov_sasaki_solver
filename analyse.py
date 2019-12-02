@@ -40,7 +40,7 @@ def analyse(pref, ilen):
         plt.title(r"$\phi^{\frac{2}{3}}$ Inflation for " + str(ilen) + " efolds")
     if pref == str(43):
         plt.title(r"$\phi^{\frac{4}{3}}$ Inflation for " + str(ilen) + " efolds")
-    plt.savefig("deltat_" + pref + "_60" + str(ilen), format="pdf")
+    plt.savefig("deltat_" + pref + "_" + str(ilen), format="pdf")
 
     logscalar = np.log(scalar)
     slope, intercept, r_value, p_value, std_err = linregress(logk, logscalar)
