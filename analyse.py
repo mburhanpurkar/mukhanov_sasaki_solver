@@ -9,22 +9,38 @@ from scipy.stats import linregress
 matplotlib.rcParams['text.usetex'] = True
 
 
-def analyse(pref):
-    scalar = np.load("deltas" + pref + "_50.npy")
-    tensor = np.load("deltat" + pref + "_50.npy")
+def analyse(pref, ilen):
+    scalar = np.load("deltas" + pref + "_" + str(ilen) + ".npy")
+    tensor = np.load("deltat" + pref + "_" + str(ilen) + ".npy")
     logk = np.linspace(-2, 3, 11)
 
     plt.plot(logk, scalar)
     plt.xlabel(r"$\log k$")
     plt.ylabel(r"$\Delta^2_R$")
-    plt.savefig("deltas_" + pref, format="pdf")
+    if pref == str(2):
+        plt.title(r"$\phi^2$ Inflation for " + str(ilen) + " efolds")
+    if pref == str(1):
+        plt.title(r"$\phi$ Inflation for " + str(ilen) + " efolds")
+    if pref == str(23):
+        plt.title(r"$\phi^{\frac{2}{3}}$ Inflation for " + str(ilen) + " efolds")
+    if pref == str(43):
+        plt.title(r"$\phi^{\frac{4}{3}}$ Inflation for " + str(ilen) + " efolds")
+    plt.savefig("deltas_" + pref + "_" + str(ilen), format="pdf")
 
     plt.clf()
     
     plt.plot(logk, tensor)
     plt.xlabel(r"$\log k$")
     plt.ylabel(r"$\Delta^2_h$")
-    plt.savefig("deltat_" + pref, format="pdf")
+    if pref == str(2):
+        plt.title(r"$\phi^2$ Inflation for " + str(ilen) + " efolds")
+    if pref == str(1):
+        plt.title(r"$\phi$ Inflation for " + str(ilen) + " efolds")
+    if pref == str(23):
+        plt.title(r"$\phi^{\frac{2}{3}}$ Inflation for " + str(ilen) + " efolds")
+    if pref == str(43):
+        plt.title(r"$\phi^{\frac{4}{3}}$ Inflation for " + str(ilen) + " efolds")
+    plt.savefig("deltat_" + pref + "_60" + str(ilen), format="pdf")
 
     logscalar = np.log(scalar)
     slope, intercept, r_value, p_value, std_err = linregress(logk, logscalar)
@@ -35,7 +51,7 @@ def analyse(pref):
 
     
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "please enter the file index as a commandline argument"
+    if len(sys.argv) != 3:
+        print "please enter the file index and inflation length as commandline arguments"
     else:
-        analyse(sys.argv[1])
+        analyse(sys.argv[1], int(sys.argv[2]))
