@@ -17,15 +17,18 @@ class InfModel:
         self.init_params = [float(phi0), float(psi0)]  # solve for b(t) = log(a(t)) instead of a(t) as before
         self.k = k
         self.t0 = t0
+        self.a0 = a0
+        self.efold = efold
+        self.niter = int(niter * efold / 200)
+
+    def update_k(self, k):
+        self.k = k
         self.v0_re = math.cos(self.k * self.t0) / math.sqrt(2 * self.k)
         self.v0_im = -math.sin(self.k * self.t0) / math.sqrt(2 * self.k)
         self.dv0_re = -math.sin(self.k * self.t0) * math.sqrt(self.k / 2)
         self.dv0_im = -math.cos(self.k * self.t0) * math.sqrt(self.k / 2)
         self.mukhanov_params_re = [self.v0_re, self.dv0_re]
         self.mukhanov_params_im = [self.v0_im, self.dv0_im]
-        self.a0 = a0
-        self.efold = efold
-        self.niter = int(niter * efold / 200)
         self.lowerrange = int(((self.efold - 54 + math.log(self.k)) / self.efold) * self.niter)
         self.upperrange = int(((self.efold - 44 + math.log(self.k)) / self.efold) * self.niter)
 
@@ -67,7 +70,7 @@ class InfModel:
             # plt.show()
 
     def get_vk(self, plot_a=False, plot=False):
-        self.get_a_phi(plot_a)
+        # self.get_a_phi(plot_a)
         H = np.sqrt(self.V(self.phi) + self.psi**2 / 2)
         z = np.exp(self.b) * self.psi / H
 
@@ -106,10 +109,15 @@ class InfModel:
         #     plt.xlabel("Conformal Time")
         #     plt.ylabel("vk")
             plt.show()
-        return (DeltaR[i0])
+            plt.plot(bsmall, DeltaR, 'o')
+            plt.axvline(x=bsmall[i0])
+            plt.xlabel("loga")
+            plt.ylabel("DeltaR^2")
+            plt.show()
+        return min(DeltaR)
 
     def get_vt(self, plot_a=False, plot=False):
-        self.get_a_phi(plot_a)
+        # self.get_a_phi(plot_a)
         # t1 = time.time()
         H = np.sqrt(self.V(self.phi) + self.psi**2 / 2)
         Hprime = np.gradient(H, self.b)
@@ -143,7 +151,12 @@ class InfModel:
         #     plt.xlabel("Conformal Time")
         #     plt.ylabel("vk")
             plt.show()
-        return Deltat[i0]
+            plt.plot(bsmall, Deltat, 'o')
+            plt.axvline(x=bsmall[i0])
+            plt.xlabel("loga")
+            plt.ylabel("Deltat^2")
+            plt.show()
+        return min(Deltat)
 
     def generic_interp(self, b0, x):
         f = interp(self.b, x, kind='linear')
@@ -181,6 +194,8 @@ class InfModel:
         # returns [v', v''] so odeint can comptute [v, v']
         return [V[1] / self.elogaH(tau, H),
                 -(k**2 - self.generic_interp(tau, y)) * V[0] / (self.elogaH(tau, H))]
+
+
 ################################################################################
 
 
@@ -192,61 +207,70 @@ def V(phi):
 def dV(phi):
     return 0.1 * 2 / 3 * phi**(2 / 3 - 1)
 
+
 t1 = time.time()
-nk = 100
+nk = 11
 logk = np.linspace(-2, 3, nk)
 deltas23 = np.zeros(nk)
 deltat23 = np.zeros(nk)
+model = InfModel(V, dV, 100, phi0=30, a0=math.exp(-626), efold=676)
+model.get_a_phi(False)
 for s in range(nk):
     k = math.exp(logk[s])
-    model = InfModel(V, dV, k, phi0=30, a0=math.exp(-626), efold=676)
+    model.update_k(k)
     deltas23[s] = model.get_vk(False, False)
     deltat23[s] = model.get_vt(False, False)
-    if s % 10 == 0:
+    if s % 1 == 0:
         print s
 
-np.save("deltas23", deltas23)
-np.save("deltat23", deltat23)
+np.save("deltas23_50", deltas23)
+np.save("deltat23_50", deltat23)
 
-# def V(phi):
-#     # return np.exp(2 * phi)
-#     return 0.1 * phi**(1)
-#
-#
-# def dV(phi):
-#     return 0.1 * 1 * phi**(1 - 1)
-#
-#
-# deltas1 = np.zeros(nk)
-# deltat1 = np.zeros(nk)
-#
-# for s in range(nk):
-#     k = math.exp(logk[s])
-#     model = InfModel(V, dV, k, phi0=30, a0=math.exp(-400), efold=450)
-#     deltas1[s] = model.get_vk(False, False)
-#     deltat1[s] = model.get_vt(False, False)
-#
-# np.save("deltas1", deltas1)
-# np.save("deltat1", deltat1)
-#
-# def V(phi):
-#     # return np.exp(2 * phi)
-#     return 0.1 * phi**(4/3)
-#
-#
-# def dV(phi):
-#     return 0.1 * 4/3 * phi**(4/3 - 1)
-#
-# deltas43 = np.zeros(nk)
-# deltat43 = np.zeros(nk)
-# for s in range(nk):
-#     k = math.exp(logk[s])
-#     model = InfModel(V, dV, k, phi0=30, a0=math.exp(-288), efold=338)
-#     deltas43[s] = model.get_vk(False, False)
-#     deltat43[s] = model.get_vt(False, False)
-#
-# np.save("deltas43", deltas43)
-# np.save("deltat43", deltat43)
+
+def V(phi):
+    # return np.exp(2 * phi)
+    return 0.1 * phi**(1)
+
+
+def dV(phi):
+    return 0.1 * 1 * phi**(1 - 1)
+
+
+deltas1 = np.zeros(nk)
+deltat1 = np.zeros(nk)
+model = InfModel(V, dV, k, phi0=30, a0=math.exp(-400), efold=450)
+model.get_a_phi(False)
+for s in range(nk):
+    k = math.exp(logk[s])
+    model.update_k(k)
+    deltas1[s] = model.get_vk(False, False)
+    deltat1[s] = model.get_vt(False, False)
+
+np.save("deltas1_50", deltas1)
+np.save("deltat1_50", deltat1)
+
+
+def V(phi):
+    # return np.exp(2 * phi)
+    return 0.1 * phi**(4 / 3)
+
+
+def dV(phi):
+    return 0.1 * 4 / 3 * phi**(4 / 3 - 1)
+
+
+deltas43 = np.zeros(nk)
+deltat43 = np.zeros(nk)
+model = InfModel(V, dV, k, phi0=30, a0=math.exp(-288), efold=338)
+model.get_a_phi(False)
+for s in range(nk):
+    k = math.exp(logk[s])
+    model.update_k(k)
+    deltas43[s] = model.get_vk(False, False)
+    deltat43[s] = model.get_vt(False, False)
+
+np.save("deltas43_50", deltas43)
+np.save("deltat43_50", deltat43)
 
 
 def V(phi):
@@ -260,16 +284,18 @@ def dV(phi):
 
 deltas2 = np.zeros(nk)
 deltat2 = np.zeros(nk)
+model = InfModel(V, dV, 100, phi0=30, a0=math.exp(-175), efold=225)
+model.get_a_phi(False)
 for s in range(nk):
     k = math.exp(logk[s])
-    model = InfModel(V, dV, k, phi0=30, a0=math.exp(-175), efold=225)
+    model.update_k(k)
     deltas2[s] = model.get_vk(False, False)
     deltat2[s] = model.get_vt(False, False)
     if s % 10 == 0:
         print s
 
-np.save("deltas2", deltas2)
-np.save("deltat2", deltat2)
+np.save("deltas2_50", deltas2)
+np.save("deltat2_50", deltat2)
 
 t2 = time.time
-print "time", (t2 - t1) / 60.0
+print "time", str((t2 - t1) / 60.0)
