@@ -21,13 +21,13 @@ def analyse(pref, ilen, offset, plot=True):
         plt.xlabel(r"$k [Mpc^{-1}]$")
         plt.ylabel(r"$\log \Delta^2_R$")
         if pref == str(2):
-            plt.title(r"$\phi^2$ Inflation for " + str(ilen) + " efolds")
+            plt.title(r"$\phi^2$ " + str(ilen) + " efolds before the end of inflation")
         if pref == str(1):
-            plt.title(r"$\phi$ Inflation for " + str(ilen) + " efolds")
+            plt.title(r"$\phi$ " + str(ilen) + " efolds before the end of inflation")
         if pref == str(23):
-            plt.title(r"$\phi^{\frac{2}{3}}$ Inflation for " + str(ilen) + " efolds")
+            plt.title(r"$\phi^{\frac{2}{3}}$ " + str(ilen) + " efolds before the end of inflation")
         if pref == str(43):
-            plt.title(r"$\phi^{\frac{4}{3}}$ Inflation for " + str(ilen) + " efolds")
+            plt.title(r"$\phi^{\frac{4}{3}}$ " + str(ilen) + " efolds before the end of inflation")
         plt.savefig("deltas_" + pref + "_" + str(ilen) + ".pdf", format="pdf")
 
         plt.clf()
@@ -36,13 +36,13 @@ def analyse(pref, ilen, offset, plot=True):
         plt.xlabel(r"$k [Mpc^{-1}]$")
         plt.ylabel(r"$\log \Delta^2_t$")
         if pref == str(2):
-            plt.title(r"$\phi^2$ Inflation for " + str(ilen) + " efolds")
+            plt.title(r"$\phi^2$ " + str(ilen) + " efolds before the end of inflation")
         if pref == str(1):
-            plt.title(r"$\phi$ Inflation for " + str(ilen) + " efolds")
+            plt.title(r"$\phi$ " + str(ilen) + " efolds before the end of inflation")
         if pref == str(23):
-            plt.title(r"$\phi^{\frac{2}{3}}$ Inflation for " + str(ilen) + " efolds")
+            plt.title(r"$\phi^{\frac{2}{3}}$ " + str(ilen) + " efolds before the end of inflation")
         if pref == str(43):
-            plt.title(r"$\phi^{\frac{4}{3}}$ Inflation for " + str(ilen) + " efolds")
+            plt.title(r"$\phi^{\frac{4}{3}}$ " + str(ilen) + " efolds before the end of inflation")
         plt.savefig("deltat_" + pref + "_" + str(ilen) + ".pdf", format="pdf")
 
     logscalar = np.log(scalar)
