@@ -9,49 +9,52 @@ from scipy.stats import linregress
 matplotlib.rcParams['text.usetex'] = True
 
 
-def analyse(pref, ilen):
+def analyse(pref, ilen, offset, plot=True):
     scalar = np.load("deltas" + pref + "_" + str(ilen) + ".npy")
     tensor = np.load("deltat" + pref + "_" + str(ilen) + ".npy")
     logk = np.linspace(-2, 3, 11)
 
-    plt.plot(logk, scalar)
-    plt.xlabel(r"$\log k$")
-    plt.ylabel(r"$\Delta^2_R$")
-    if pref == str(2):
-        plt.title(r"$\phi^2$ Inflation for " + str(ilen) + " efolds")
-    if pref == str(1):
-        plt.title(r"$\phi$ Inflation for " + str(ilen) + " efolds")
-    if pref == str(23):
-        plt.title(r"$\phi^{\frac{2}{3}}$ Inflation for " + str(ilen) + " efolds")
-    if pref == str(43):
-        plt.title(r"$\phi^{\frac{4}{3}}$ Inflation for " + str(ilen) + " efolds")
-    plt.savefig("deltas_" + pref + "_" + str(ilen), format="pdf")
-
-    plt.clf()
+    x = np.exp(logk) * 0.05 / offset
     
-    plt.plot(logk, tensor)
-    plt.xlabel(r"$\log k$")
-    plt.ylabel(r"$\Delta^2_h$")
-    if pref == str(2):
-        plt.title(r"$\phi^2$ Inflation for " + str(ilen) + " efolds")
-    if pref == str(1):
-        plt.title(r"$\phi$ Inflation for " + str(ilen) + " efolds")
-    if pref == str(23):
-        plt.title(r"$\phi^{\frac{2}{3}}$ Inflation for " + str(ilen) + " efolds")
-    if pref == str(43):
-        plt.title(r"$\phi^{\frac{4}{3}}$ Inflation for " + str(ilen) + " efolds")
-    plt.savefig("deltat_" + pref + "_" + str(ilen), format="pdf")
+    if plot:
+        plt.semilogx(x, np.log(scalar))
+        plt.xlabel(r"$k [Mpc^{-1}]$")
+        plt.ylabel(r"$\log \Delta^2_R$")
+        if pref == str(2):
+            plt.title(r"$\phi^2$ Inflation for " + str(ilen) + " efolds")
+        if pref == str(1):
+            plt.title(r"$\phi$ Inflation for " + str(ilen) + " efolds")
+        if pref == str(23):
+            plt.title(r"$\phi^{\frac{2}{3}}$ Inflation for " + str(ilen) + " efolds")
+        if pref == str(43):
+            plt.title(r"$\phi^{\frac{4}{3}}$ Inflation for " + str(ilen) + " efolds")
+        plt.savefig("deltas_" + pref + "_" + str(ilen) + ".pdf", format="pdf")
+
+        plt.clf()
+
+        plt.semilogx(x, np.log(tensor))
+        plt.xlabel(r"$k [Mpc^{-1}]$")
+        plt.ylabel(r"$\log \Delta^2_t$")
+        if pref == str(2):
+            plt.title(r"$\phi^2$ Inflation for " + str(ilen) + " efolds")
+        if pref == str(1):
+            plt.title(r"$\phi$ Inflation for " + str(ilen) + " efolds")
+        if pref == str(23):
+            plt.title(r"$\phi^{\frac{2}{3}}$ Inflation for " + str(ilen) + " efolds")
+        if pref == str(43):
+            plt.title(r"$\phi^{\frac{4}{3}}$ Inflation for " + str(ilen) + " efolds")
+        plt.savefig("deltat_" + pref + "_" + str(ilen) + ".pdf", format="pdf")
 
     logscalar = np.log(scalar)
     slope, intercept, r_value, p_value, std_err = linregress(logk, logscalar)
     
-    r = (2 * tensor / scalar).mean()
-    print "r = " + str(r)
-    print "n_s = " + str(slope + 1)
+    r = ( tensor / scalar).mean()
+    print "r" + pref + str(ilen) + " = " + str(r)
+    print "n" + pref + str(ilen) + " = " + str(slope + 1)
 
     
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print "please enter the file index and inflation length as commandline arguments"
+    if len(sys.argv) != 4:
+        print "please enter the file index and inflation length as commandline arguments and offset"
     else:
-        analyse(sys.argv[1], int(sys.argv[2]))
+        analyse(sys.argv[1], int(sys.argv[2]), float(sys.argv[3]))
