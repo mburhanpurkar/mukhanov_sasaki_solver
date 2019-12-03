@@ -3,6 +3,8 @@
 import time
 import math
 import numpy as np
+import matplotlib
+matplotlib.rcParams['text.usetex'] = True
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from scipy.misc import derivative
@@ -11,7 +13,7 @@ from scipy.interpolate import interp1d as interp
 
 class InfModel:
     """All time-dependent quantities in this class are in terms of conformal time!"""
-    def __init__(self, V, dV, k, phi0=30, psi0=-0.00000001, a0=math.exp(-626), efold=676, niter=4000, t0=0):
+    def __init__(self, V, dV, k, phi0=30, psi0=-0.00000001, a0=math.exp(-626), efold=676, niter=8000, t0=0):
         self.V = V
         self.dV = dV
         self.init_params = [float(phi0), float(psi0)]  # solve for b(t) = log(a(t)) instead of a(t) as before
@@ -47,21 +49,24 @@ class InfModel:
 
         H = np.sqrt(self.V(self.phi) + self.psi**2 / 2)
         Hprime = np.gradient(H, self.b)
+        
+        print H[abs(self.b + 10).argmin()]
         if plot:
             # plt.plot(self.t, np.exp(self.b))
             # plt.xlabel("Conformal Time")
             # plt.ylabel("Scale Factor")
             # plt.show()
-
+            plt.clf()
             # Plot where inflation is happening!
-            plt.plot(self.b, H)
-            # mask = np.where(4 * (self.psi**2 / 2) - 2 * self.V(self.phi) < 0, True, False)
-            # binf = self.b[mask]
-            # phiinf = self.phi[mask]
-            # plt.plot(binf, phiinf, 'go', markersize=2)
+            plt.plot(self.b, self.phi)
+            plt.title(r"$V(\phi) = \phi^{2}$")
+            mask = np.where(4 * (self.psi**2 / 2) - 2 * self.V(self.phi) < 0, True, False)
+            binf = self.b[mask]
+            phiinf = self.phi[mask]
+            plt.plot(binf, phiinf, 'go', markersize=2)
             # plt.plot(self.b, np.zeros(len(self.b)))
-            plt.xlabel("Number of Efolds")
-            plt.ylabel("H")
+            plt.xlabel("Number of efolds")
+            plt.ylabel(r"$\phi$")
             plt.show()
 
             # plt.plot(self.b, self.psi)
@@ -101,19 +106,24 @@ class InfModel:
         # # print("D^2_R(k=" + str(k) + ") = " + str((H[i0] * vk[i0] / self.dphi[i0] / self.a[i0])**2))
         #
         if plot:
+            # plt.plot(vk_re, vk_im)
             plt.plot(vk_re, vk_im)
-        #     plt.plot(self.b, H)
-        #     plt.plot(self.b, np.zeros(len(self.b)))
-        #     # plt.plot(self.t, vk_re**2 + vk_im**2)
-        #     # plt.plot(vk_re, vk_im)
-        #     plt.xlabel("Conformal Time")
-        #     plt.ylabel("vk")
+            plt.xlabel(r"$Re[v_k]$")
+            plt.ylabel(r"$Im[v_k]$")
+            plt.xlim((-2, 2))
+            plt.ylim((-2, 2))
             plt.show()
-            plt.plot(bsmall, DeltaR, 'o')
-            plt.axvline(x=bsmall[i0])
-            plt.xlabel("loga")
-            plt.ylabel("DeltaR^2")
-            plt.show()
+            # plt.plot(bsmall, DeltaR, 'o')
+            # plt.axvline(x=bsmall[i0])
+            # plt.xlabel("loga")
+            # plt.ylabel("DeltaR^2")
+            # plt.show()
+            #     plt.plot(self.b, np.zeros(len(self.b)))
+            #     # plt.plot(self.t, vk_re**2 + vk_im**2)
+            #     # plt.plot(vk_re, vk_im)
+            #     plt.xlabel("Conformal Time")
+            #     plt.ylabel("vk")
+
         return min(DeltaR)
 
     def get_vt(self, plot_a=False, plot=False):
@@ -143,14 +153,14 @@ class InfModel:
         # # print("D^2_R(k=" + str(k) + ") = " + str((H[i0] * vk[i0] / self.dphi[i0] / self.a[i0])**2))
         #
         if plot:
-            plt.plot(vk_im, vk_re)
+            #plt.plot(vk_im, vk_re)
             # plt.plot(self.b, H)
         #     plt.plot(self.b, np.zeros(len(self.b)))
         #     # plt.plot(self.t, vk_re**2 + vk_im**2)
         #     # plt.plot(vk_re, vk_im)
         #     plt.xlabel("Conformal Time")
         #     plt.ylabel("vk")
-            plt.show()
+            # plt.show()
             plt.plot(bsmall, Deltat, 'o')
             plt.axvline(x=bsmall[i0])
             plt.xlabel("loga")
@@ -215,16 +225,15 @@ deltas23 = np.zeros(nk)
 deltat23 = np.zeros(nk)
 model = InfModel(V, dV, 100, phi0=30, a0=math.exp(-626), efold=676)
 model.get_a_phi(False)
-for s in range(nk):
-    k = math.exp(logk[s])
-    model.update_k(k)
-    deltas23[s] = model.get_vk(False, False)
-    deltat23[s] = model.get_vt(False, False)
-    if s % 1 == 0:
-        print s
+# for s in range(nk):
+# k = math.exp(logk[s])
+model.update_k(0.31640304852404455)
+deltas23[0] = model.get_vk(False, True)
+# deltat23[s] = model.get_vt(False, False)
 
-np.save("deltas23_50", deltas23)
-np.save("deltat23_50", deltat23)
+
+# np.save("deltas23_50", deltas23)
+# np.save("deltat23_50", deltat23)
 
 
 def V(phi):
@@ -236,18 +245,19 @@ def dV(phi):
     return 0.1 * 1 * phi**(1 - 1)
 
 
-deltas1 = np.zeros(nk)
-deltat1 = np.zeros(nk)
-model = InfModel(V, dV, k, phi0=30, a0=math.exp(-400), efold=450)
-model.get_a_phi(False)
-for s in range(nk):
-    k = math.exp(logk[s])
-    model.update_k(k)
-    deltas1[s] = model.get_vk(False, False)
-    deltat1[s] = model.get_vt(False, False)
+# deltas1 = np.zeros(nk)
+# deltat1 = np.zeros(nk)
+# model = InfModel(V, dV, 100, phi0=30, a0=math.exp(0), efold=450)
+# model.get_a_phi(True)
+# model.get_vk(False, True)
+# # for s in range(nk):
+# #     k = math.exp(logk[s])
+# #     model.update_k(k)
+# #     deltas1[s] = model.get_vk(False, False)
+# #     deltat1[s] = model.get_vt(False, False)
 
-np.save("deltas1_50", deltas1)
-np.save("deltat1_50", deltat1)
+# # np.save("deltas1_50", deltas1)
+# # np.save("deltat1_50", deltat1)
 
 
 def V(phi):
@@ -259,18 +269,18 @@ def dV(phi):
     return 0.1 * 4 / 3 * phi**(4 / 3 - 1)
 
 
-deltas43 = np.zeros(nk)
-deltat43 = np.zeros(nk)
-model = InfModel(V, dV, k, phi0=30, a0=math.exp(-288), efold=338)
-model.get_a_phi(False)
-for s in range(nk):
-    k = math.exp(logk[s])
-    model.update_k(k)
-    deltas43[s] = model.get_vk(False, False)
-    deltat43[s] = model.get_vt(False, False)
+# deltas43 = np.zeros(nk)
+# deltat43 = np.zeros(nk)
+# model = InfModel(V, dV, 100, phi0=30, a0=math.exp(0), efold=338)
+# model.get_a_phi(True)
+# # for s in range(nk):
+# #     k = math.exp(logk[s])
+# #     model.update_k(k)
+# #     deltas43[s] = model.get_vk(False, False)
+# #     deltat43[s] = model.get_vt(False, False)
 
-np.save("deltas43_50", deltas43)
-np.save("deltat43_50", deltat43)
+# # np.save("deltas43_50", deltas43)
+# # np.save("deltat43_50", deltat43)
 
 
 def V(phi):
@@ -282,20 +292,20 @@ def dV(phi):
     return 0.1 * 2 * phi**(2 - 1)
 
 
-deltas2 = np.zeros(nk)
-deltat2 = np.zeros(nk)
-model = InfModel(V, dV, 100, phi0=30, a0=math.exp(-175), efold=225)
-model.get_a_phi(False)
-for s in range(nk):
-    k = math.exp(logk[s])
-    model.update_k(k)
-    deltas2[s] = model.get_vk(False, False)
-    deltat2[s] = model.get_vt(False, False)
-    if s % 10 == 0:
-        print s
+# deltas2 = np.zeros(nk)
+# deltat2 = np.zeros(nk)
+# model = InfModel(V, dV, 100, phi0=30, a0=math.exp(0), efold=225)
+# model.get_a_phi(True)
+# # for s in range(nk):
+# #     k = math.exp(logk[s])
+# #     model.update_k(k)
+# #     deltas2[s] = model.get_vk(False, False)
+# #     deltat2[s] = model.get_vt(False, False)
+# #     if s % 10 == 0:
+# #         print s
 
-np.save("deltas2_50", deltas2)
-np.save("deltat2_50", deltat2)
+# # np.save("deltas2_50", deltas2)
+# # np.save("deltat2_50", deltat2)
 
-t2 = time.time
-print "time", str((t2 - t1) / 60.0)
+# # t2 = time.time
+# # print "time", str((t2 - t1) / 60.0)
